@@ -1,7 +1,6 @@
 const http = require("http");
 const path = require("path");
 const fs = require("fs/promises");
-const nodemailer = require("nodemailer");
 
 const PORT = Number(process.env.PORT || 8787);
 const API_KEY = String(process.env.API_KEY || "").trim();
@@ -46,40 +45,53 @@ const EMAIL_CONFIG = {
   senderEmail: String(process.env.SENDER_EMAIL || process.env.SNEDER_EMAIL || "").trim(),
   senderName: String(process.env.SENDER_NAME || "Terence & Shanice Wedding").trim(),
   websiteUrl: String(process.env.WEBSITE_URL || "").trim(),
+  resendApiKey: String(process.env.RESEND_API_KEY || "").trim(),
+  // Legacy SMTP fallback (won't work on Render free tier)
   gmailAppPassword: normalizePassword(
     process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD || ""
   )
 };
 
 const canSendEmail = Boolean(
-  EMAIL_CONFIG.senderEmail && EMAIL_CONFIG.gmailAppPassword
+  EMAIL_CONFIG.senderEmail && (EMAIL_CONFIG.resendApiKey || EMAIL_CONFIG.gmailAppPassword)
 );
 
-const emailTransporter = canSendEmail
-  ? nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: EMAIL_CONFIG.senderEmail,
-        pass: EMAIL_CONFIG.gmailAppPassword
-      }
-    })
-  : null;
-
-if (emailTransporter) {
-  emailTransporter
-    .verify()
-    .then(() => {
-      console.log("Email transport verified and ready.");
-    })
-    .catch((error) => {
-      console.error("Email transport verification failed:", error?.message || error);
+// sendEmail: uses Resend HTTP API (preferred) or falls back to nodemailer SMTP
+async function sendEmail({ to, from, replyTo, subject, html, text }) {
+  if (EMAIL_CONFIG.resendApiKey) {
+    const body = { from, to: Array.isArray(to) ? to : [to], subject, html };
+    if (replyTo) body.reply_to = replyTo;
+    if (text) body.text = text;
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${EMAIL_CONFIG.resendApiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
     });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      const err = new Error(errBody?.message || `Resend API error ${res.status}`);
+      err.code = `RESEND_${res.status}`;
+      err.response = JSON.stringify(errBody);
+      throw err;
+    }
+    return;
+  }
+
+  // SMTP fallback (nodemailer)
+  const nodemailer = require("nodemailer");
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: EMAIL_CONFIG.senderEmail, pass: EMAIL_CONFIG.gmailAppPassword }
+  });
+  await transporter.sendMail({ from, to, replyTo, subject, html, text });
 }
 
 if (!canSendEmail) {
   console.warn(
-    "Email transport disabled: set RECIPIENT_EMAIL, SENDER_EMAIL, and one of GMAIL_APP_PASSWORD, EMAIL_APP_PASSWORD, or SMTP_PASSWORD to enable outgoing emails."
-  );
+    "Email transport disabled: set SENDER_EMAIL and RESEND_API_KEY (preferred) or GMAIL_APP_PASSWORD to enable outgoing emails."
 }
 
 async function readInviteContent() {
@@ -140,12 +152,12 @@ function buildSecurityHeaders() {
 function getEmailHealth() {
   const missing = [];
   if (!EMAIL_CONFIG.senderEmail) missing.push("SENDER_EMAIL");
-  if (!EMAIL_CONFIG.gmailAppPassword) {
-    missing.push("GMAIL_APP_PASSWORD|EMAIL_APP_PASSWORD|SMTP_PASSWORD");
+  if (!EMAIL_CONFIG.resendApiKey && !EMAIL_CONFIG.gmailAppPassword) {
+    missing.push("RESEND_API_KEY (recommended) or GMAIL_APP_PASSWORD");
   }
-
   return {
     configured: canSendEmail,
+    transport: EMAIL_CONFIG.resendApiKey ? "resend" : EMAIL_CONFIG.gmailAppPassword ? "smtp" : "none",
     missing
   };
 }
@@ -585,13 +597,18 @@ const server = http.createServer(async (req, res) => {
       writeJson(res, 401, { error: "Unauthorized" }, origin);
       return;
     }
-    if (!emailTransporter) {
+    if (!canSendEmail) {
       writeJson(res, 503, { ok: false, error: "Email service is not configured", health: getEmailHealth() }, origin);
       return;
     }
     try {
-      await emailTransporter.verify();
-      writeJson(res, 200, { ok: true, message: "SMTP connection verified" }, origin);
+      await sendEmail({
+        from: `"${EMAIL_CONFIG.senderName}" <${EMAIL_CONFIG.senderEmail}>`,
+        to: EMAIL_CONFIG.senderEmail,
+        subject: "SMTP/API connectivity test",
+        html: "<p>Test email from Wedoria backend.</p>"
+      });
+      writeJson(res, 200, { ok: true, message: "Email send verified", transport: EMAIL_CONFIG.resendApiKey ? "resend" : "smtp" }, origin);
     } catch (err) {
       writeJson(res, 500, {
         ok: false,
@@ -632,7 +649,7 @@ const server = http.createServer(async (req, res) => {
       const attLabel = rsvp.attendance === "yes" ? "Attending" : rsvp.attendance === "no" ? "Not Attending" : rsvp.attendance || "Unknown";
       const guestEmail = resolveRsvpRecipientEmail(rsvp);
 
-      if (!emailTransporter) {
+      if (!canSendEmail) {
         writeJson(res, 503, { sent: false, error: "Email service is not configured" }, origin);
         return;
       }
@@ -644,7 +661,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       // Send RSVP confirmation to the guest
-      await emailTransporter.sendMail({
+      await sendEmail({
         from: `"${EMAIL_CONFIG.senderName}" <${EMAIL_CONFIG.senderEmail}>`,
         to: guestEmail,
         subject: `Your RSVP has been received — ${EMAIL_CONFIG.senderName}`,
@@ -653,7 +670,7 @@ const server = http.createServer(async (req, res) => {
 
       // Also notify the organizer if RECIPIENT_EMAIL is configured
       if (EMAIL_CONFIG.recipientEmail) {
-        await emailTransporter.sendMail({
+        await sendEmail({
           from: `"${EMAIL_CONFIG.senderName}" <${EMAIL_CONFIG.senderEmail}>`,
           to: EMAIL_CONFIG.recipientEmail,
           replyTo: guestEmail,
@@ -696,16 +713,16 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      if (!emailTransporter) {
+      if (!canSendEmail) {
         writeJson(res, 503, { sent: false, error: "Email service is not configured" }, origin);
         return;
       }
 
       const { name, email, contactNumber, contactDetails, attemptedGuestName, source, requestedAt } = validated.data;
 
-      await emailTransporter.sendMail({
+      await sendEmail({
         from: `"${EMAIL_CONFIG.senderName}" <${EMAIL_CONFIG.senderEmail}>`,
-        to: EMAIL_CONFIG.recipientEmail,
+        to: EMAIL_CONFIG.recipientEmail || EMAIL_CONFIG.senderEmail,
         replyTo: email,
         subject: `Guest List Contact Request: ${name}`,
         html: buildGuestContactEmailHtml({
