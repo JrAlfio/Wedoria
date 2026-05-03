@@ -245,7 +245,18 @@ async function hydrateContentFromBackend() {
       return;
     }
 
-    content = deepMerge(structuredClone(defaultContent), remoteContent);
+    // Deep-merge backend into defaults, then merge local edits on top so
+    // locally saved editor changes are never silently discarded.
+    const localRaw = localStorage.getItem(STORAGE_KEY);
+    const localContent = (() => {
+      try { return JSON.parse(localRaw || "null"); } catch { return null; }
+    })();
+
+    const fromBackend = deepMerge(structuredClone(defaultContent), remoteContent);
+    content = localContent
+      ? deepMerge(fromBackend, localContent)
+      : fromBackend;
+
     saveContent();
   } catch {
     // Keep local data when backend is unavailable.
@@ -311,10 +322,39 @@ async function hydrateRsvpSubmissionsFromBackend() {
 
     const result = await response.json();
     const remoteSubmissions = Array.isArray(result?.submissions) ? result.submissions : [];
-    localStorage.setItem(RSVP_STORAGE_KEY, JSON.stringify(remoteSubmissions));
+
+    // Load what's already in localStorage so we never wipe local-only data
+    const localRaw = localStorage.getItem(RSVP_STORAGE_KEY);
+    const localSubmissions = (() => {
+      try { return JSON.parse(localRaw || "[]"); } catch { return []; }
+    })();
+    const localArr = Array.isArray(localSubmissions) ? localSubmissions : [];
+
+    // Merge: local entries first, then backend entries win on same key
+    const merged = new Map();
+    for (const s of localArr) {
+      const key = mergeKeyForSubmission(s);
+      if (key) merged.set(key, s);
+    }
+    for (const s of remoteSubmissions) {
+      const key = mergeKeyForSubmission(s);
+      if (key) merged.set(key, s);
+    }
+
+    // Only write back if merged result is non-empty or backend had data
+    if (merged.size > 0 || remoteSubmissions.length > 0) {
+      localStorage.setItem(RSVP_STORAGE_KEY, JSON.stringify([...merged.values()]));
+    }
   } catch {
     // Keep local submissions if backend is unavailable.
   }
+}
+
+function mergeKeyForSubmission(entry) {
+  const verified = String(entry?.verifiedGuest || "").trim().toLowerCase().replace(/\s+/g, " ");
+  if (verified) return `verified:${verified}`;
+  const fullName = String(entry?.fullName || "").trim().toLowerCase().replace(/\s+/g, " ");
+  return fullName ? `name:${fullName}` : null;
 }
 
 async function persistRsvpSubmissionsToBackend(submissions) {
