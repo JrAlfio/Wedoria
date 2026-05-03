@@ -1652,16 +1652,29 @@ async function onRsvpSubmit(event) {
     : "Thanks for your RSVP. Saved in this browser only (backend sync failed).";
   downloadWeddingCalendarIcs(submission);
 
-  // Send email notification via backend (fire-and-forget, non-blocking)
+  // Keep RSVP save successful even if email delivery fails.
+  void notifyRsvpEmail(submission);
+}
+
+async function notifyRsvpEmail(submission) {
   const rsvpEndpoint = (content.access?.endpoint || buildApiUrl("/api/guest-check"))
     .replace(/\/api\/guest-check$/, "/api/rsvp");
-  fetch(rsvpEndpoint, {
-    method: "POST",
-    headers: buildBackendHeaders(),
-    body: JSON.stringify(submission)
-  }).catch(() => {
-    // Email sending failure doesn't affect the local RSVP save
-  });
+
+  try {
+    const response = await fetch(rsvpEndpoint, {
+      method: "POST",
+      headers: buildBackendHeaders(),
+      body: JSON.stringify(submission)
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload?.sent === false) {
+      const reason = payload?.error ? ` (${payload.error})` : "";
+      el.rsvpResult.textContent += ` Email notification not sent${reason}.`;
+    }
+  } catch {
+    el.rsvpResult.textContent += " Email notification not sent (network/server error).";
+  }
 }
 
 function loadRsvpSubmissions() {

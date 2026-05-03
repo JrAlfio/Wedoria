@@ -44,6 +44,17 @@ const emailTransporter = canSendEmail
     })
   : null;
 
+if (emailTransporter) {
+  emailTransporter
+    .verify()
+    .then(() => {
+      console.log("Email transport verified and ready.");
+    })
+    .catch((error) => {
+      console.error("Email transport verification failed:", error?.message || error);
+    });
+}
+
 if (!canSendEmail) {
   console.warn(
     "Email transport disabled: set RECIPIENT_EMAIL, SENDER_EMAIL, and one of GMAIL_APP_PASSWORD, EMAIL_APP_PASSWORD, or SMTP_PASSWORD to enable outgoing emails."
@@ -101,6 +112,20 @@ function buildSecurityHeaders() {
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "no-referrer",
     "Cache-Control": "no-store"
+  };
+}
+
+function getEmailHealth() {
+  const missing = [];
+  if (!EMAIL_CONFIG.recipientEmail) missing.push("RECIPIENT_EMAIL");
+  if (!EMAIL_CONFIG.senderEmail) missing.push("SENDER_EMAIL");
+  if (!EMAIL_CONFIG.gmailAppPassword) {
+    missing.push("GMAIL_APP_PASSWORD|EMAIL_APP_PASSWORD|SMTP_PASSWORD");
+  }
+
+  return {
+    configured: canSendEmail,
+    missing
   };
 }
 
@@ -528,7 +553,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === "/health") {
-    writeJson(res, 200, { ok: true }, origin);
+    writeJson(res, 200, { ok: true, email: getEmailHealth() }, origin);
     return;
   }
 
@@ -595,7 +620,12 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      console.error("RSVP email error:", err.message);
+      console.error("RSVP email error:", {
+        message: err?.message,
+        code: err?.code,
+        command: err?.command,
+        response: err?.response
+      });
       writeJson(res, 500, { sent: false, error: "Failed to send email" }, origin);
     }
     return;
@@ -646,7 +676,12 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      console.error("Guest contact request error:", err.message);
+      console.error("Guest contact request error:", {
+        message: err?.message,
+        code: err?.code,
+        command: err?.command,
+        response: err?.response
+      });
       writeJson(res, 500, { sent: false, error: "Failed to send contact request" }, origin);
     }
     return;
