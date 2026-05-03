@@ -354,6 +354,15 @@ function sanitizeText(value, maxLength = 300) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function isValidAttendance(value) {
   return value === "yes" || value === "no";
 }
@@ -365,8 +374,12 @@ function validateRsvpPayload(payload) {
   const kidsCountRaw = String(payload?.kidsCount || "0").trim();
   const kidsCount = Number.parseInt(kidsCountRaw, 10);
 
-  if (!fullName || !isValidEmail(email) || !isValidAttendance(attendance)) {
+  // email is optional — guests without email can still RSVP
+  if (!fullName || !isValidAttendance(attendance)) {
     return { valid: false, error: "Invalid RSVP payload" };
+  }
+  if (email && !isValidEmail(email)) {
+    return { valid: false, error: "Invalid email address" };
   }
 
   if (!Number.isInteger(kidsCount) || kidsCount < 0 || kidsCount > 10) {
@@ -538,27 +551,34 @@ const server = http.createServer(async (req, res) => {
       const rsvp = validated.data;
       const guestName = String(rsvp.fullName || rsvp.verifiedGuest || "Guest");
       const attLabel = rsvp.attendance === "yes" ? "Attending" : rsvp.attendance === "no" ? "Not Attending" : rsvp.attendance || "Unknown";
-      const recipientEmail = resolveRsvpRecipientEmail(rsvp);
-
-      if (!isValidEmail(recipientEmail)) {
-        writeJson(res, 400, { sent: false, error: "RSVP email is required and must be valid" }, origin);
-        return;
-      }
+      const guestEmail = resolveRsvpRecipientEmail(rsvp);
 
       if (!emailTransporter) {
         writeJson(res, 503, { sent: false, error: "Email service is not configured" }, origin);
         return;
       }
 
+      // Always notify the organizer about every RSVP
       await emailTransporter.sendMail({
         from: `"${EMAIL_CONFIG.senderName}" <${EMAIL_CONFIG.senderEmail}>`,
-        to: recipientEmail,
-        subject: `RSVP: ${guestName} — ${attLabel}`,
+        to: EMAIL_CONFIG.recipientEmail,
+        replyTo: guestEmail || undefined,
+        subject: `New RSVP: ${guestName} — ${attLabel}`,
         text: buildRsvpEmailText(rsvp),
         html: buildRsvpEmailHtml(rsvp)
       });
 
-      writeJson(res, 200, { sent: true, to: recipientEmail }, origin);
+      // Also send a confirmation to the guest if they provided an email
+      if (guestEmail) {
+        await emailTransporter.sendMail({
+          from: `"${EMAIL_CONFIG.senderName}" <${EMAIL_CONFIG.senderEmail}>`,
+          to: guestEmail,
+          subject: `Your RSVP has been received — ${EMAIL_CONFIG.senderName}`,
+          html: `<p>Hi ${escapeHtml(guestName)},</p><p>Thank you for your RSVP! We've received your response (<strong>${attLabel}</strong>) and can't wait to celebrate with you.</p><p>With love,<br>${escapeHtml(EMAIL_CONFIG.senderName)}</p>`
+        });
+      }
+
+      writeJson(res, 200, { sent: true }, origin);
     } catch (err) {
       if (err?.code === "PAYLOAD_TOO_LARGE") {
         writeJson(res, 413, { sent: false, error: "Payload too large" }, origin);
