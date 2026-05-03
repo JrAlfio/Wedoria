@@ -21,8 +21,8 @@ function normalizePassword(value) {
 }
 
 const EMAIL_CONFIG = {
-  recipientEmail: String(process.env.RECIPIENT_EMAIL || "").trim(),
-  senderEmail: String(process.env.SENDER_EMAIL || "").trim(),
+  recipientEmail: String(process.env.RECIPIENT_EMAIL || process.env.RECIPENT_EMAIL || "").trim(),
+  senderEmail: String(process.env.SENDER_EMAIL || process.env.SNEDER_EMAIL || "").trim(),
   senderName: String(process.env.SENDER_NAME || "Terence & Shanice Wedding").trim(),
   websiteUrl: String(process.env.WEBSITE_URL || "").trim(),
   gmailAppPassword: normalizePassword(
@@ -117,8 +117,8 @@ function buildSecurityHeaders() {
 
 function getEmailHealth() {
   const missing = [];
-  if (!EMAIL_CONFIG.recipientEmail) missing.push("RECIPIENT_EMAIL");
-  if (!EMAIL_CONFIG.senderEmail) missing.push("SENDER_EMAIL");
+  if (!EMAIL_CONFIG.recipientEmail) missing.push("RECIPIENT_EMAIL|RECIPENT_EMAIL");
+  if (!EMAIL_CONFIG.senderEmail) missing.push("SENDER_EMAIL|SNEDER_EMAIL");
   if (!EMAIL_CONFIG.gmailAppPassword) {
     missing.push("GMAIL_APP_PASSWORD|EMAIL_APP_PASSWORD|SMTP_PASSWORD");
   }
