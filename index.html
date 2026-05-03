@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Our Wedding Invitation</title>
+    <meta
+      name="description"
+      content="Celebrate our wedding and RSVP online."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; connect-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https:"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="locked">
+    <section class="access-gate" id="accessGate">
+      <div class="access-card">
+        <section id="accessGuestView">
+          <p class="eyebrow">Guest Access</p>
+          <h2>Find Your Invitation</h2>
+          <p id="accessHint"></p>
+          <form id="accessForm" class="access-form">
+            <label>
+              Enter your full name
+              <input
+                type="text"
+                id="accessName"
+                name="accessName"
+                required
+                placeholder="e.g. Olivia Tan"
+              />
+            </label>
+            <div class="access-actions">
+              <button type="submit" class="cta-btn">Continue to RSVP</button>
+              <a href="#" id="contactToggleLink" class="access-link">Contact us</a>
+            </div>
+          </form>
+        </section>
+
+        <section id="accessContactView" class="access-contact-view" hidden>
+          <p class="eyebrow">Contact Us</p>
+          <h2>Leave Your Details</h2>
+          <p class="access-contact-copy">Please share your details and we will get back to you.</p>
+          <form id="contactRequestForm" class="access-form">
+            <label>
+              Name
+              <input
+                type="text"
+                id="contactRequestName"
+                name="contactRequestName"
+                required
+                placeholder="Your full name"
+              />
+            </label>
+            <label>
+              Email
+              <input
+                type="email"
+                id="contactRequestEmail"
+                name="contactRequestEmail"
+                required
+                placeholder="name@email.com"
+              />
+            </label>
+            <label>
+              Contact number
+              <input
+                type="tel"
+                id="contactRequestNumber"
+                name="contactRequestNumber"
+                required
+                placeholder="Your contact number"
+              />
+            </label>
+            <p id="contactRequestResult" class="form-result" aria-live="polite"></p>
+            <div class="access-actions">
+              <button type="submit" class="cta-btn" id="contactRequestSubmit">Send</button>
+              <a href="#" id="backToGuestLink" class="access-link">Back to guest access</a>
+            </div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <div class="bg-blob bg-blob-a"></div>
+    <div class="bg-blob bg-blob-b"></div>
+
+    <header class="hero" id="hero">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <p class="eyebrow" id="heroTagline"></p>
+        <h1 id="coupleNames"></h1>
+        <p class="hero-date" id="weddingDate"></p>
+        <p class="hero-location" id="venueName"></p>
+        <a href="#rsvp" class="cta-btn" id="heroCta"></a>
+      </div>
+    </header>
+
+    <main>
+      <section class="section intro" id="intro">
+        <h2 id="welcomeTitle"></h2>
+        <p id="welcomeMessage"></p>
+      </section>
+
+      <section class="section schedule" id="schedule">
+        <div class="section-heading">
+          <h2>Event Details</h2>
+        </div>
+        <div class="details-grid" id="eventDetails"></div>
+      </section>
+
+      <section class="section theme" id="themeSection">
+        <div class="section-heading">
+          <h2 id="themeTitle"></h2>
+          <p id="themeSummary"></p>
+        </div>
+        <div class="details-grid" id="themeDetails"></div>
+      </section>
+
+      <section class="section gallery" id="gallery">
+        <div class="section-heading">
+          <h2>Our Story In Frames</h2>
+        </div>
+        <div class="gallery-grid" id="galleryGrid"></div>
+      </section>
+
+      <section class="section faq" id="faqSection">
+        <div class="section-heading">
+          <h2 id="faqTitle"></h2>
+        </div>
+        <div class="faq-list" id="faqList"></div>
+      </section>
+
+      <section class="section rsvp" id="rsvp">
+        <div class="section-heading">
+          <h2>RSVP</h2>
+          <p id="rsvpDescription"></p>
+        </div>
+        <form id="rsvpForm" class="rsvp-form">
+          <label>
+            Full Name
+            <input type="text" name="fullName" required placeholder="Your full name" />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" required placeholder="name@email.com" />
+          </label>
+          <label>
+            Will you attend?
+            <select name="attendance" required>
+              <option value="">Select one</option>
+              <option value="yes">Joyfully attending</option>
+              <option value="no">Cannot make it</option>
+            </select>
+          </label>
+          <label>
+            How many kids will be attending?(Below 12 years old)
+            <input type="number" name="kidsCount" min="0" max="10" value="0" />
+          </label>
+          <section id="familyRsvpSection" class="family-rsvp" hidden>
+            <h3 id="familyRsvpTitle">Family RSVP</h3>
+            <p id="familyRsvpHint"></p>
+            <div id="familyRsvpList" class="family-rsvp-list"></div>
+          </section>
+          <label>
+            Dietary Notes
+            <input type="text" name="dietary" placeholder="Vegetarian, allergies, etc." />
+          </label>
+          <label>
+            Message for the couple
+            <textarea
+              name="message"
+              rows="4"
+              placeholder="Have a question or a little note for us? Feel free to share it here."
+            ></textarea>
+          </label>
+          <button type="submit" class="cta-btn">Submit RSVP</button>
+          <p id="rsvpResult" class="form-result" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p id="footerMessage"></p>
+    </footer>
+
+    <button class="editor-toggle" id="editorToggle" type="button">Edit Invite</button>
+
+    <aside class="editor" id="editor" aria-hidden="true">
+      <div class="editor-header">
+        <h2>Invite Editor</h2>
+        <button id="editorClose" type="button" class="ghost-btn">Close</button>
+      </div>
+      <p class="editor-note">
+        Edit text, links, and image URLs. Your changes are saved in this browser.
+      </p>
+      <form id="editorForm" class="editor-form"></form>
+      <div class="editor-actions">
+        <button type="button" id="saveProgress" class="cta-btn">Save Progress</button>
+        <button type="button" id="exportContent" class="ghost-btn">Export JSON</button>
+        <button type="button" id="exportRsvpSummary" class="ghost-btn">Export RSVP Summary</button>
+        <label class="import-label ghost-btn">
+          Import JSON
+          <input type="file" id="importContent" accept="application/json" />
+        </label>
+        <button type="button" id="resetContent" class="danger-btn">Reset</button>
+        <p id="saveProgressResult" class="form-result" aria-live="polite"></p>
+      </div>
+    </aside>
+
+    <script src="config.js?v=20260503"></script>
+    <script type="module" src="app.js?v=20260503"></script>
+  </body>
+</html>

@@ -1,0 +1,155 @@
+{
+  "hero": {
+    "tagline": "Together with their families",
+    "coupleNames": "Terence & Shanice",
+    "weddingDate": "Saturday, 6 March 2027",
+    "venueName": "Thomson Road Baptist Church, Singapore",
+    "ctaText": "RSVP Now",
+    "heroImage": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
+  },
+  "intro": {
+    "welcomeTitle": "You Are Invited",
+    "welcomeMessage": "Join us as we celebrate the making of our marriage covenant and our union, surrended by people we love most. We can't wait to share this unforgettable day with you!"
+  },
+  "eventDetails": [
+    {
+      "title": "Time",
+      "value": "10.15am-1pm \nPlease be seated by 10.15am"
+    },
+    {
+      "title": "Ceremony",
+      "value": "Level 2 Sanctuary, \nThompson Road Baptist Church"
+    },
+    {
+      "title": "Address",
+      "value": "45 Thomson Road, Singapore 307584"
+    },
+    {
+      "title": "Getting There",
+      "value": "MRT: Novena Stn (10mins walk)\nBuses: 56, 57, 131, 141, 161, 851, 980 (4-7mins walk)"
+    }
+  ],
+  "theme": {
+    "title": "Theme & Dress Code",
+    "summary": "A romantic garden evening with timeless silhouettes and earthy elegance.",
+    "details": [
+      {
+        "title": "Theme",
+        "value": "Power Ranger X Spring Colours! "
+      },
+      {
+        "title": "Dress Code",
+        "value": "Smart Casual \nLadies, kindly refrain from wearing white"
+      },
+      {
+        "title": "Colour Palette ",
+        "value": "[Insert Image]"
+      }
+    ]
+  },
+  "gallery": [
+    "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80"
+  ],
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": [
+      {
+        "question": "Can I bring a plus one?",
+        "answer": "As we are keeping our celebration intimate and within a comfortable capacity, we have carefully planned our guest list. Your invitation will indicate if your plus-one has been included. We appreciate your understanding. "
+      },
+      {
+        "question": "What time should I arrive?",
+        "answer": "Please be seated by 10.15am, as we will commence the ceremony promptly. Guest arriving after this time may be seated after the walk-in has concluded."
+      },
+      {
+        "question": "Is parking available?",
+        "answer": "As parking is limited at the church, we would recommend parking at the following location: \n- United Square Shopping Mall (5-8mins walk)\n- IRAS Revenus House (10mins walk)\n- 37A Cambridge Rd, MSCP HDB (10-12mins walk)"
+      },
+      {
+        "question": "Are children welcome?",
+        "answer": "Yes! If your children's name is not included in the invite, please let us know. A cry room is available at the back of the hall. or a free-roaming space outside the hall for your use. "
+      }
+    ]
+  },
+  "rsvp": {
+    "description": "Please respond by XXX October 2027 so we can prepare your seat with care."
+  },
+  "access": {
+    "enabled": true,
+    "hint": "Please enter your name to access the RSVP page.",
+    "mode": "local",
+    "endpoint": "http://localhost:8787/api/guest-check",
+    "method": "POST",
+    "apiKey": "change-me",
+    "apiKeyHeader": "x-api-key",
+    "requestNameField": "name",
+    "successField": "allowed",
+    "guestList": [
+      "Olivia Tan",
+      "Ethan Lim",
+      "Grace Lee",
+      "Daniel Chua",
+      "Terence Chia",
+      "Thomas Chia",
+      "Koo Sheau Chin",
+      "Koo Sheau Hong",
+      "Koo Sheau Long",
+      "Joseph See",
+      "Kenneth See",
+      "Alicia Lim",
+      "Anna Dungca",
+      "Shanice See"
+    ],
+    "localFamilies": [
+      {
+        "id": "tan-family-1",
+        "label": "Tan Family",
+        "members": [
+          "Olivia Tan",
+          "Ethan Lim"
+        ]
+      },
+      {
+        "id": "lee-family-2",
+        "label": "Lee Family",
+        "members": [
+          "Grace Lee",
+          "Daniel Chua"
+        ]
+      },
+      {
+        "id": "chia-family-3",
+        "label": "Chia Family",
+        "members": [
+          "Terence Chia",
+          "Thomas Chia",
+          "Koo Sheau Chin"
+        ]
+      },
+      {
+        "id": "hong-family-4",
+        "label": "Hong Family",
+        "members": [
+          "Koo Sheau Hong",
+          "Koo Sheau Long"
+        ]
+      },
+      {
+        "id": "see-family-5",
+        "label": "See Family",
+        "members": [
+          "Joseph See",
+          "Kenneth See",
+          "Alicia Lim",
+          "Anna Dungca"
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "message": "With love, Terence & Shanice"
+  }
+}

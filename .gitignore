@@ -1,0 +1,3 @@
+backend-example/node_modules/
+backend-example/.env
+data/rsvp-submissions.json
