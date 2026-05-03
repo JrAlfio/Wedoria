@@ -52,7 +52,7 @@ const EMAIL_CONFIG = {
 };
 
 const canSendEmail = Boolean(
-  EMAIL_CONFIG.recipientEmail && EMAIL_CONFIG.senderEmail && EMAIL_CONFIG.gmailAppPassword
+  EMAIL_CONFIG.senderEmail && EMAIL_CONFIG.gmailAppPassword
 );
 
 const emailTransporter = canSendEmail
@@ -139,8 +139,7 @@ function buildSecurityHeaders() {
 
 function getEmailHealth() {
   const missing = [];
-  if (!EMAIL_CONFIG.recipientEmail) missing.push("RECIPIENT_EMAIL|RECIPENT_EMAIL");
-  if (!EMAIL_CONFIG.senderEmail) missing.push("SENDER_EMAIL|SNEDER_EMAIL");
+  if (!EMAIL_CONFIG.senderEmail) missing.push("SENDER_EMAIL");
   if (!EMAIL_CONFIG.gmailAppPassword) {
     missing.push("GMAIL_APP_PASSWORD|EMAIL_APP_PASSWORD|SMTP_PASSWORD");
   }
@@ -611,27 +610,33 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      // Always notify the organizer about every RSVP
+      if (!guestEmail) {
+        // No guest email provided — skip email, still treat as success
+        writeJson(res, 200, { sent: false, reason: "No guest email provided" }, origin);
+        return;
+      }
+
+      // Send RSVP confirmation to the guest
       await emailTransporter.sendMail({
         from: `"${EMAIL_CONFIG.senderName}" <${EMAIL_CONFIG.senderEmail}>`,
-        to: EMAIL_CONFIG.recipientEmail,
-        replyTo: guestEmail || undefined,
-        subject: `New RSVP: ${guestName} — ${attLabel}`,
-        text: buildRsvpEmailText(rsvp),
-        html: buildRsvpEmailHtml(rsvp)
+        to: guestEmail,
+        subject: `Your RSVP has been received — ${EMAIL_CONFIG.senderName}`,
+        html: `<p>Hi ${escapeHtml(guestName)},</p><p>Thank you for your RSVP! We've received your response (<strong>${attLabel}</strong>) and can't wait to celebrate with you.</p><p>With love,<br>${escapeHtml(EMAIL_CONFIG.senderName)}</p>`
       });
 
-      // Also send a confirmation to the guest if they provided an email
-      if (guestEmail) {
+      // Also notify the organizer if RECIPIENT_EMAIL is configured
+      if (EMAIL_CONFIG.recipientEmail) {
         await emailTransporter.sendMail({
           from: `"${EMAIL_CONFIG.senderName}" <${EMAIL_CONFIG.senderEmail}>`,
-          to: guestEmail,
-          subject: `Your RSVP has been received — ${EMAIL_CONFIG.senderName}`,
-          html: `<p>Hi ${escapeHtml(guestName)},</p><p>Thank you for your RSVP! We've received your response (<strong>${attLabel}</strong>) and can't wait to celebrate with you.</p><p>With love,<br>${escapeHtml(EMAIL_CONFIG.senderName)}</p>`
+          to: EMAIL_CONFIG.recipientEmail,
+          replyTo: guestEmail,
+          subject: `New RSVP: ${guestName} — ${attLabel}`,
+          text: buildRsvpEmailText(rsvp),
+          html: buildRsvpEmailHtml(rsvp)
         });
       }
 
-      writeJson(res, 200, { sent: true }, origin);
+      writeJson(res, 200, { sent: true, to: guestEmail }, origin);
     } catch (err) {
       if (err?.code === "PAYLOAD_TOO_LARGE") {
         writeJson(res, 413, { sent: false, error: "Payload too large" }, origin);
