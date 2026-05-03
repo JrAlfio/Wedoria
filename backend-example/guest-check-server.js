@@ -16,12 +16,18 @@ const CONTENT_FILE_PATH = path.join(__dirname, "..", "data", "invite-content.jso
 const RSVP_SUBMISSIONS_FILE_PATH = path.join(__dirname, "..", "data", "rsvp-submissions.json");
 const rateLimitStore = new Map();
 
+function normalizePassword(value) {
+  return String(value || "").replace(/\s+/g, "").trim();
+}
+
 const EMAIL_CONFIG = {
   recipientEmail: String(process.env.RECIPIENT_EMAIL || "").trim(),
   senderEmail: String(process.env.SENDER_EMAIL || "").trim(),
   senderName: String(process.env.SENDER_NAME || "Terence & Shanice Wedding").trim(),
   websiteUrl: String(process.env.WEBSITE_URL || "").trim(),
-  gmailAppPassword: String(process.env.GMAIL_APP_PASSWORD || "").trim()
+  gmailAppPassword: normalizePassword(
+    process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_APP_PASSWORD || process.env.SMTP_PASSWORD || ""
+  )
 };
 
 const canSendEmail = Boolean(
@@ -40,7 +46,7 @@ const emailTransporter = canSendEmail
 
 if (!canSendEmail) {
   console.warn(
-    "Email transport disabled: set RECIPIENT_EMAIL, SENDER_EMAIL, and GMAIL_APP_PASSWORD to enable outgoing emails."
+    "Email transport disabled: set RECIPIENT_EMAIL, SENDER_EMAIL, and one of GMAIL_APP_PASSWORD, EMAIL_APP_PASSWORD, or SMTP_PASSWORD to enable outgoing emails."
   );
 }
 
