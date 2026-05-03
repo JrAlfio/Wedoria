@@ -5,10 +5,31 @@ const nodemailer = require("nodemailer");
 
 const PORT = Number(process.env.PORT || 8787);
 const API_KEY = String(process.env.API_KEY || "").trim();
-const ALLOWED_ORIGINS = String(process.env.ALLOWED_ORIGINS || "")
+function normalizeOrigin(rawOrigin) {
+  const raw = String(rawOrigin || "").trim();
+  if (!raw) return "";
+
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+    return parsed.origin;
+  } catch {
+    return "";
+  }
+}
+
+const configuredOrigins = String(process.env.ALLOWED_ORIGINS || "")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin))
   .filter(Boolean);
+const fallbackOrigins = [
+  normalizeOrigin(process.env.WEBSITE_URL || ""),
+  normalizeOrigin(process.env.FRONTEND_URL || ""),
+  "https://wedoria.onrender.com",
+  "https://wedoria.co",
+  "https://www.wedoria.co"
+].filter(Boolean);
+const ALLOWED_ORIGINS = Array.from(new Set([...configuredOrigins, ...fallbackOrigins]));
 const MAX_BODY_SIZE_BYTES = Number(process.env.MAX_BODY_SIZE_BYTES || 1024 * 1024);
 const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 60 * 1000);
 const RATE_LIMIT_MAX_REQUESTS = Number(process.env.RATE_LIMIT_MAX_REQUESTS || 60);
@@ -91,9 +112,10 @@ function normalizeName(name) {
 }
 
 function isOriginAllowed(origin) {
-  if (!origin) return true;
+  const normalizedOrigin = normalizeOrigin(origin);
+  if (!normalizedOrigin) return true;
   if (ALLOWED_ORIGINS.length === 0) return true;
-  return ALLOWED_ORIGINS.includes(origin);
+  return ALLOWED_ORIGINS.includes(normalizedOrigin);
 }
 
 function buildCorsHeaders(origin) {
