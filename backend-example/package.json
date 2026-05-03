@@ -2,6 +2,9 @@
   "name": "withjoy-backend",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "start": "node guest-check-server.js"
+  },
   "dependencies": {
     "nodemailer": "^6.9.13"
   }
