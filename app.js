@@ -33,9 +33,9 @@ const CONTENT_BACKEND_ENDPOINT = buildApiUrl("/api/invite-content");
 const defaultContent = {
   hero: {
     tagline: "Together with their families",
-    coupleNames: "Emma & Lucas",
-    weddingDate: "Saturday, 18 October 2026",
-    venueName: "The Glass House, Singapore",
+    coupleNames: "Terence & Shanice",
+    weddingDate: "Saturday, 6 March 2027",
+    venueName: "Thomson Road Baptist Church, Singapore",
     ctaText: "RSVP Now",
     heroImage:
       "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
@@ -43,21 +43,21 @@ const defaultContent = {
   intro: {
     welcomeTitle: "You Are Invited",
     welcomeMessage:
-      "Join us for an evening of love, laughter, and dancing under the stars. We cannot wait to celebrate this unforgettable day with you."
+      "Join us as we celebrate the making of our marriage covenant and our union, surrended by people we love most. We can't wait to share this unforgettable day with you!"
   },
   eventDetails: [
-    { title: "Ceremony", value: "4:30 PM at The Glass House Chapel" },
-    { title: "Reception", value: "6:00 PM Garden Ballroom" },
-    { title: "Dress Code", value: "Garden Formal - Soft Earth Tones" },
-    { title: "Address", value: "99 Orchard View, Singapore" }
+    { title: "Time", value: "10.15am-1pm \nPlease be seated by 10.15am" },
+    { title: "Ceremony", value: "Level 2 Sanctuary, \nThompson Road Baptist Church" },
+    { title: "Address", value: "45 Thomson Road, Singapore 307584" },
+    { title: "Getting There", value: "MRT: Novena Stn (10mins walk)\nBuses: 56, 57, 131, 141, 161, 851, 980 (4-7mins walk)" }
   ],
   theme: {
     title: "Theme & Dress Code",
     summary: "A romantic garden evening with timeless silhouettes and earthy elegance.",
     details: [
-      { title: "Dress Code", value: "Garden Formal - flowy dresses, suits, and polished footwear." },
-      { title: "Color Palette", value: "Sage, terracotta, champagne, and warm neutrals." },
-      { title: "Style Note", value: "Please avoid white, ivory, or cream so the couple can shine." }
+      { title: "Theme", value: "Power Ranger X Spring Colours! " },
+      { title: "Dress Code", value: "Smart Casual \nLadies, kindly refrain from wearing white" },
+      { title: "Colour Palette ", value: "[Insert Image]" }
     ]
   },
   gallery: [
@@ -71,20 +71,24 @@ const defaultContent = {
     items: [
       {
         question: "Can I bring a plus one?",
-        answer: "Your invitation will indicate if a plus one is included."
-      },
-      {
-        question: "Is there parking at the venue?",
-        answer: "Yes, complimentary parking is available at The Glass House."
+        answer: "As we are keeping our celebration intimate and within a comfortable capacity, we have carefully planned our guest list. Your invitation will indicate if your plus-one has been included. We appreciate your understanding. "
       },
       {
         question: "What time should I arrive?",
-        answer: "Please arrive by 4:00 PM so everyone is seated before the ceremony."
+        answer: "Please be seated by 10.15am, as we will commence the ceremony promptly. Guest arriving after this time may be seated after the walk-in has concluded."
+      },
+      {
+        question: "Is parking available?",
+        answer: "As parking is limited at the church, we would recommend parking at the following location: \n- United Square Shopping Mall (5-8mins walk)\n- IRAS Revenus House (10mins walk)\n- 37A Cambridge Rd, MSCP HDB (10-12mins walk)"
+      },
+      {
+        question: "Are children welcome?",
+        answer: "Yes! If your children's name is not included in the invite, please let us know. A cry room is available at the back of the hall. or a free-roaming space outside the hall for your use. "
       }
     ]
   },
   rsvp: {
-    description: "Please respond by 15 September 2026 so we can prepare your seat with care."
+    description: "Please respond by XXX October 2027 so we can prepare your seat with care."
   },
   access: {
     enabled: true,
@@ -96,7 +100,7 @@ const defaultContent = {
     apiKeyHeader: "x-api-key",
     requestNameField: "name",
     successField: "allowed",
-    guestList: ["Olivia Tan", "Ethan Lim", "Grace Lee", "Daniel Chua", "Terence Chia"],
+    guestList: ["Olivia Tan", "Ethan Lim", "Grace Lee", "Daniel Chua", "Terence Chia", "Thomas Chia", "Koo Sheau Chin", "Koo Sheau Hong", "Koo Sheau Long", "Joseph See", "Kenneth See", "Alicia Lim", "Anna Dungca", "Shanice See"],
     localFamilies: [
       {
         id: "tan-family",
@@ -109,14 +113,24 @@ const defaultContent = {
         members: ["Grace Lee", "Daniel Chua"]
       },
       {
-        id: "chia-family",
+        id: "chia-family-3",
         label: "Chia Family",
-        members: ["Terence Chia", "Terence's Mom", "Terence's Dad"]
+        members: ["Terence Chia", "Thomas Chia", "Koo Sheau Chin"]
+      },
+      {
+        id: "hong-family-4",
+        label: "Hong Family",
+        members: ["Koo Sheau Hong", "Koo Sheau Long"]
+      },
+      {
+        id: "see-family-5",
+        label: "See Family",
+        members: ["Joseph See", "Kenneth See", "Alicia Lim", "Anna Dungca"]
       }
     ]
   },
   footer: {
-    message: "With love, Emma & Lucas"
+    message: "With love, Terence & Shanice"
   }
 };
 

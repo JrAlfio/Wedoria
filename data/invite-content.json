@@ -81,7 +81,7 @@
     "enabled": true,
     "hint": "Please enter your name to access the RSVP page.",
     "mode": "local",
-    "endpoint": "http://localhost:8787/api/guest-check",
+    "endpoint": "https://wedoria-vy9l.onrender.com/api/guest-check",
     "method": "POST",
     "apiKey": "change-me",
     "apiKeyHeader": "x-api-key",
