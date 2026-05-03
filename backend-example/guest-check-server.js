@@ -551,6 +551,7 @@ const server = http.createServer(async (req, res) => {
     "/api/rsvp",
     "/api/guest-contact",
     "/api/rsvp-submissions",
+    "/api/email-test",
     "/health"
   ]);
 
@@ -577,6 +578,32 @@ const server = http.createServer(async (req, res) => {
     writeJson(res, 200, { ok: true, email: getEmailHealth() }, origin);
     return;
   }
+
+  // ── SMTP connectivity test (API-key protected) ──────────────────────────
+  if (pathname === "/api/email-test" && req.method === "GET") {
+    if (API_KEY && req.headers["x-api-key"] !== API_KEY) {
+      writeJson(res, 401, { error: "Unauthorized" }, origin);
+      return;
+    }
+    if (!emailTransporter) {
+      writeJson(res, 503, { ok: false, error: "Email service is not configured", health: getEmailHealth() }, origin);
+      return;
+    }
+    try {
+      await emailTransporter.verify();
+      writeJson(res, 200, { ok: true, message: "SMTP connection verified" }, origin);
+    } catch (err) {
+      writeJson(res, 500, {
+        ok: false,
+        error: err?.message || "Unknown SMTP error",
+        code: err?.code,
+        command: err?.command,
+        response: err?.response
+      }, origin);
+    }
+    return;
+  }
+  // ────────────────────────────────────────────────────────────────────────
 
   const isPublicRoute = pathname === "/api/guest-check" || pathname === "/api/guest-contact" || pathname === "/api/rsvp";
   if (isPublicRoute && isRateLimited(req, pathname)) {
