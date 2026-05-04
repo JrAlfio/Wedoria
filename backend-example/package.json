@@ -6,7 +6,7 @@
     "start": "node guest-check-server.js"
   },
   "dependencies": {
-    "nodemailer": "^6.9.13",
+
     "resend": "^4.8.0"
   }
 }

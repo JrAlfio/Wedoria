@@ -53,45 +53,40 @@ const EMAIL_CONFIG = {
 };
 
 const canSendEmail = Boolean(
-  EMAIL_CONFIG.senderEmail && (EMAIL_CONFIG.resendApiKey || EMAIL_CONFIG.gmailAppPassword)
+  EMAIL_CONFIG.senderEmail && EMAIL_CONFIG.resendApiKey
 );
 
-// sendEmail: uses Resend HTTP API (preferred) or falls back to nodemailer SMTP
+// sendEmail: uses Resend HTTP API over HTTPS (works on Render free tier)
+// Returns silently when email is not configured — never throws or crashes server
 async function sendEmail({ to, from, replyTo, subject, html, text }) {
-  if (EMAIL_CONFIG.resendApiKey) {
-    const body = { from, to: Array.isArray(to) ? to : [to], subject, html };
-    if (replyTo) body.reply_to = replyTo;
-    if (text) body.text = text;
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${EMAIL_CONFIG.resendApiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
-      const err = new Error(errBody?.message || `Resend API error ${res.status}`);
-      err.code = `RESEND_${res.status}`;
-      err.response = JSON.stringify(errBody);
-      throw err;
-    }
-    return;
-  }
+  if (!canSendEmail) return;
 
-  // SMTP fallback (nodemailer)
-  const nodemailer = require("nodemailer");
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: EMAIL_CONFIG.senderEmail, pass: EMAIL_CONFIG.gmailAppPassword }
+  const body = { from, to: Array.isArray(to) ? to : [to], subject, html };
+  if (replyTo) body.reply_to = replyTo;
+  if (text) body.text = text;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${EMAIL_CONFIG.resendApiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
   });
-  await transporter.sendMail({ from, to, replyTo, subject, html, text });
+
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    const err = new Error(errBody?.message || `Resend API error ${res.status}`);
+    err.code = `RESEND_${res.status}`;
+    err.response = JSON.stringify(errBody);
+    throw err;
+  }
 }
 
 if (!canSendEmail) {
-  console.warn(
-    "Email transport disabled: set SENDER_EMAIL and RESEND_API_KEY (preferred) or GMAIL_APP_PASSWORD to enable outgoing emails."
+  console.warn("Email disabled. Set SENDER_EMAIL + RESEND_API_KEY env vars to enable.");
+} else {
+  console.log(`Email enabled via Resend (sender: ${EMAIL_CONFIG.senderEmail})`);
 }
 
 async function readInviteContent() {
